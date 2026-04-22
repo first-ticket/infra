@@ -114,15 +114,19 @@ Keycloak 최초 실행 시 `realm-export.json`이 자동으로 import됩니다.
 2. `first-ticket` Realm 선택
 3. **Users → Create new user**
 
-| Username | Email | Role |
-|----------|-------|------|
-| testadmin001 | testadmin001@test.com | ADMIN |
-| testcustomer001 | testcustomer001@test.com | CUSTOMER |
-| testhost001 | testhost001@test.com | HOST |
+- 계정은 이메일과 비밀번호를 사용하여 로그인합니다.
+- 아래는 테스트 계정 생성 예시입니다.
+
+| Email | Role |
+|-------|------|
+| testadmin001@test.com | ADMIN |
+| testcustomer001@test.com | CUSTOMER |
+| testhost001@test.com | HOST |
 
 4. 각 유저 생성 후 **Credentials 탭 → Set password** (Temporary: OFF)
-5. **Role mapping 탭 → Assign role** → `first-ticket` Realm의 해당 Role 부여
+5. **Role mapping 탭 → Assign role** → Filter by realm roles -> 필요한 Role 부여
 6. **Details 탭 → Email verified: ON**
+- 이메일 인증 여부는 user-service에서 담당합니다.
 
 > 💡 테스트 유저는 `keycloak-data` 볼륨에 저장됩니다. `docker-compose down`해도 유지됩니다.
 > `realm-export.json`이 변경된 경우 볼륨을 초기화하세요: `docker-compose -f docker/docker-compose.yml down -v`
@@ -136,7 +140,7 @@ Content-Type: application/x-www-form-urlencoded
 grant_type=password
 client_id=user-client
 client_secret={user-client Secret 확인 필요 — Clients → user-client → Credentials 탭}
-username=testcustomer001
+username={설정한 이메일}
 password={설정한 비밀번호}
 ```
 
