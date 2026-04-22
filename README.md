@@ -107,7 +107,6 @@ Keycloak 최초 실행 시 `realm-export.json`이 자동으로 import됩니다.
 | Roles | `CUSTOMER`, `HOST`, `ADMIN` |
 
 > ⚠️ **보안상 테스트 유저는 export에 포함되지 않습니다.** 아래 가이드에 따라 수동으로 생성하세요.
-> 테스트 유저 비밀번호는 팀 내 통일된 값을 사용하세요 (노션 참고).
 
 ### 테스트 유저 생성
 
