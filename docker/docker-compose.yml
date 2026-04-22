@@ -86,6 +86,28 @@ services:
     networks:
       - first-ticket-network
 
+### keycloak 도커 설정 추가
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.0
+    container_name: first-ticket-keycloak
+    restart: on-failure:3
+    command: start-dev --import-realm
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: ${KEYCLOAK_ADMIN}
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
+    volumes:
+      - ./keycloak/realm-export.json:/opt/keycloak/data/import/realm-export.json
+    ports:
+      - "${KEYCLOAK_PORT:-8180}:8080"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/health/ready || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+      start_period: 60s
+    networks:
+      - first-ticket-network
+
 volumes:
   postgres-data:
   redis-data:
