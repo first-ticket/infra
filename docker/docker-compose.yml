@@ -93,4 +93,5 @@ volumes:
 
 networks:
   first-ticket-network:
+    name: first-ticket-network
     driver: bridge
