@@ -107,6 +107,7 @@ Keycloak 최초 실행 시 `realm-export.json`이 자동으로 import됩니다.
 | Roles | `CUSTOMER`, `HOST`, `ADMIN` |
 
 > ⚠️ **보안상 테스트 유저는 export에 포함되지 않습니다.** 아래 가이드에 따라 수동으로 생성하세요.
+> 테스트 유저 비밀번호는 팀 내 통일된 값을 사용하세요 (노션 참고).
 
 ### 테스트 유저 생성
 
@@ -124,9 +125,12 @@ Keycloak 최초 실행 시 `realm-export.json`이 자동으로 import됩니다.
 5. **Role mapping 탭 → Assign role** → `first-ticket` Realm의 해당 Role 부여
 6. **Details 탭 → Email verified: ON**
 
+> 💡 테스트 유저는 `keycloak-data` 볼륨에 저장됩니다. `docker-compose down`해도 유지됩니다.
+> `realm-export.json`이 변경된 경우 볼륨을 초기화하세요: `docker-compose -f docker/docker-compose.yml down -v`
+
 ### 토큰 발급 테스트 (Postman)
 
-```
+```http
 POST http://localhost:8180/realms/first-ticket/protocol/openid-connect/token
 Content-Type: application/x-www-form-urlencoded
 
