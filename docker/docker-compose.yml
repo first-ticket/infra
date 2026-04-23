@@ -86,10 +86,34 @@ services:
     networks:
       - first-ticket-network
 
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.0
+    container_name: first-ticket-keycloak
+    restart: on-failure:3
+    command: start-dev --import-realm
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: ${KEYCLOAK_ADMIN}
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
+      KC_HEALTH_ENABLED: "true"
+    volumes:
+      - ./keycloak/realm-export.json:/opt/keycloak/data/import/realm-export.json
+      - keycloak-data:/opt/keycloak/data
+    ports:
+      - "${KEYCLOAK_PORT:-8180}:8080"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9000/health/ready || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+      start_period: 60s
+    networks:
+      - first-ticket-network
+
 volumes:
   postgres-data:
   redis-data:
   kafka-data:
+  keycloak-data:
 
 networks:
   first-ticket-network:
