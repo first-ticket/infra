@@ -877,7 +877,7 @@
       "enabled": true,
       "alwaysDisplayInConsole": false,
       "clientAuthenticatorType": "client-secret",
-      "secret": "**********",
+      "secret": "local-user-client-secret",
       "redirectUris": [
         "/*"
       ],
