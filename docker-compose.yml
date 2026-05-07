@@ -109,11 +109,80 @@ services:
     networks:
       - first-ticket-network
 
+  # ── 모니터링 ──────────────────────────────────────────────
+
+  prometheus:
+    image: prom/prometheus:v2.51.0
+    container_name: first-ticket-prometheus
+    restart: on-failure:3
+    ports:
+      - "${PROMETHEUS_PORT:-9090}:9090"
+    volumes:
+      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=7d'
+      - '--web.enable-lifecycle'
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:9090/-/healthy || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    networks:
+      - first-ticket-network
+
+  grafana:
+    image: grafana/grafana:10.4.0
+    container_name: first-ticket-grafana
+    restart: on-failure:3
+    ports:
+      - "${GRAFANA_PORT:-3000}:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:-admin}
+      GF_PATHS_PROVISIONING: /etc/grafana/provisioning
+    volumes:
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - grafana-data:/var/lib/grafana
+    depends_on:
+      prometheus:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3000/api/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - first-ticket-network
+
+  zipkin:
+    image: openzipkin/zipkin:3.4
+    container_name: first-ticket-zipkin
+    restart: on-failure:3
+    ports:
+      - "${ZIPKIN_PORT:-9411}:9411"
+    environment:
+      STORAGE_TYPE: mem          # 운영 전환 시 elasticsearch 등으로 교체
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:9411/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    networks:
+      - first-ticket-network
+
 volumes:
   postgres-data:
   redis-data:
   kafka-data:
   keycloak-data:
+  prometheus-data:
+  grafana-data:
 
 networks:
   first-ticket-network:
