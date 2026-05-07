@@ -14,6 +14,9 @@ first-ticket 개발 환경을 위한 인프라 설정 모음입니다.
 | Kafka | 메시지 브로커 | 9092 (컨테이너 내부), 29092 (로컬) |
 | Kafka UI | Kafka 모니터링 | 8989 |
 | Keycloak | 인증/인가 서버 (Auth/JWT) | 8180 |
+| Prometheus | 메트릭 수집 | 9090 |
+| Grafana | 모니터링 대시보드 | 3000 |
+| Zipkin | 분산 추적 | 9411 |
 
 ---
 
@@ -23,12 +26,20 @@ first-ticket 개발 환경을 위한 인프라 설정 모음입니다.
 infra/
 ├── .env.example
 ├── .gitignore
-└── docker/
-    ├── docker-compose.yml
-    ├── postgres/
-    │   └── init.sql
-    └── keycloak/
-        └── realm-export.json
+├── docker-compose.yml
+├── postgres/
+│   └── init.sql
+├── keycloak/
+│   └── realm-export.json
+└── monitoring/
+    ├── prometheus/
+    │   └── prometheus.yml
+    └── grafana/
+        └── provisioning/
+            ├── datasources/
+            │   └── prometheus.yml
+            └── dashboards/
+                └── dashboard.yml
 ```
 
 ---
@@ -59,22 +70,27 @@ KEYCLOAK_ADMIN_PASSWORD=
 # KAFKA_PORT=9092
 # KAFKA_UI_PORT=8989
 # KEYCLOAK_PORT=8180
+# PROMETHEUS_PORT=9090
+# GRAFANA_PORT=3000
+# GRAFANA_USER=admin
+# GRAFANA_PASSWORD=admin
+# ZIPKIN_PORT=9411
 ```
 
 **3. 실행**
 
 ```bash
-docker-compose -f docker/docker-compose.yml --env-file .env up -d
+docker compose up -d
 ```
 
-> ⚠️ `--env-file .env` 플래그가 필수입니다. compose 파일이 하위 디렉토리에 있어 자동으로 `.env`를 인식하지 못합니다.
+> 💡 `docker-compose.yml`과 `.env`가 같은 디렉토리에 있으면 자동으로 인식합니다. 다른 디렉토리에서 실행할 경우 `--env-file` 옵션을 명시해야 합니다.
 > ⚠️ 각 서비스 실행 전 반드시 infra를 먼저 실행해야 합니다.
 > `first-ticket-network`가 생성된 후 각 서비스가 해당 네트워크에 참여할 수 있습니다.
 
 **4. 종료**
 
 ```bash
-docker-compose -f docker/docker-compose.yml --env-file .env down
+docker compose down
 ```
 
 ---
@@ -146,8 +162,8 @@ Content-Type: application/json
 5. **Role mapping 탭 → Assign role** → Filter by realm roles → 필요한 Role 부여
 6. **Details 탭 → Email verified: ON**
 
-> 💡 테스트 유저는 `keycloak-data` 볼륨에 저장됩니다. `docker-compose down`해도 유지됩니다.
-> `realm-export.json`이 변경된 경우 볼륨을 초기화하세요: `docker-compose -f docker/docker-compose.yml down -v`
+> 💡 테스트 유저는 `keycloak-data` 볼륨에 저장됩니다. `docker compose down`해도 유지됩니다.
+> `realm-export.json`이 변경된 경우 볼륨을 초기화하세요: `docker compose down -v`
 
 ### 토큰 발급 테스트 (Postman)
 
@@ -183,10 +199,11 @@ password={설정한 비밀번호}
 
 ---
 
-### 최종 수정 : 20260428
-### 최종 수정자 : 박동진
+### 최종 수정 : 20260507
+### 최종 수정자 : 조하은
 
 수정 이력
 - 20260422 : 최초 작성 (PostgreSQL / Redis / Kafka / Kafka UI)
 - 20260422 : Keycloak 설정 추가
 - 20260428 : 테스트 유저 생성 방법 A(user-service API) 추가, 토큰 발급 방법 A(user-service 로그인 API) 추가
+- 20260507 : 모니터링 스택 추가 (Prometheus / Grafana / Zipkin), 폴더 구조 변경 (docker/ 제거)
