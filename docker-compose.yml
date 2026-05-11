@@ -176,6 +176,30 @@ services:
     networks:
       - first-ticket-network
 
+
+  # ── 부하테스트 ──────────────────────────────────────────────
+
+  ngrinder-controller:
+    image: ngrinder/controller:3.5.9-p1
+    platform: linux/amd64
+    container_name: first-ticket-ngrinder-controller
+    ports:
+      - "${NGRINDER_PORT:-8090}:80"
+      - "16001:16001"
+      - "12000-12009:12000-12009"
+    networks:
+      - first-ticket-network
+
+  ngrinder-agent:
+    image: ngrinder/agent:3.5.9-p1
+    platform: linux/amd64
+    container_name: first-ticket-ngrinder-agent
+    command: ngrinder-controller:80
+    depends_on:
+      - ngrinder-controller
+    networks:
+      - first-ticket-network
+
 volumes:
   postgres-data:
   redis-data:
@@ -183,6 +207,7 @@ volumes:
   keycloak-data:
   prometheus-data:
   grafana-data:
+  ngrinder-controller-data:
 
 networks:
   first-ticket-network:
