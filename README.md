@@ -17,6 +17,8 @@ first-ticket 개발 환경을 위한 인프라 설정 모음입니다.
 | Prometheus | 메트릭 수집 | 9090 |
 | Grafana | 모니터링 대시보드 | 3000 |
 | Zipkin | 분산 추적 | 9411 |
+| nGrinder Controller | 부하테스트 UI | 8090 |
+| nGrinder Agent | 부하 발생기 | - |
 
 ---
 
@@ -75,6 +77,7 @@ KEYCLOAK_ADMIN_PASSWORD=
 # GRAFANA_USER=admin
 # GRAFANA_PASSWORD=admin
 # ZIPKIN_PORT=9411
+# NGRINDER_PORT=8090
 ```
 
 **3. 실행**
@@ -199,7 +202,7 @@ password={설정한 비밀번호}
 
 ---
 
-### 최종 수정 : 20260507
+### 최종 수정 : 20260511
 ### 최종 수정자 : 조하은
 
 수정 이력
@@ -207,3 +210,4 @@ password={설정한 비밀번호}
 - 20260422 : Keycloak 설정 추가
 - 20260428 : 테스트 유저 생성 방법 A(user-service API) 추가, 토큰 발급 방법 A(user-service 로그인 API) 추가
 - 20260507 : 모니터링 스택 추가 (Prometheus / Grafana / Zipkin), 폴더 구조 변경 (docker/ 제거)
+- 20260511 : nGrinder 부하테스트 인프라 추가 (Controller / Agent)
