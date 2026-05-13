@@ -1,0 +1,30 @@
+# ============================================================
+# 로컬 개발 환경용 override 파일
+# ============================================================
+#
+# -- 자동 적용
+# Docker Compose는 docker-compose.yml과 동일 디렉토리에
+# docker-compose.override.yml이 존재하면 자동으로 병합합니다.
+# 별도 -f 옵션 없이 아래 커맨드로 로컬 개발 환경을 구성하시면 됩니다.
+#
+#   docker compose up -d
+#
+# -- 환경 분리 이유
+# Keycloak의 start-dev(개발 모드)와 start(운영환경 모드)는
+# 실행 방식과 헬스체크 동작 방식이 달라 하나의 파일로 관리할 수 없습니다.
+#
+#   start-dev : H2 인메모리 DB, 빠른 시작, 헬스체크 → 9000 포트
+#   start     : PostgreSQL 연동, 보안 활성화, 헬스체크 → 9000 포트
+#
+# 로컬 개발 편의를 위한 설정만 추가하세요.
+# 배포에 반영되어야 하는 변경은 docker-compose.prod.yml에 작성합니다.
+# ============================================================
+services:
+  keycloak:
+    command: start-dev --import-realm
+    healthcheck:
+      test: ["CMD", "bash", "-c", "exec 3<>/dev/tcp/localhost/9000 && printf 'GET /health/ready HTTP/1.0\\r\\nHost: localhost\\r\\n\\r\\n' >&3 && grep -q UP <&3"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+      start_period: 60s
