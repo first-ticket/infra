@@ -73,3 +73,8 @@ services:
       timeout: 10s
       retries: 10
       start_period: 90s
+
+    # 운영환경 초기화용: secret 필드 없음 (Keycloak이 UUID 자동 생성)
+    # PostgreSQL DB 사용 -> 최초 배포 이후에는 해당 import 패스 (안전)
+    volumes:
+      - ./keycloak/realm-export-prod.json:/opt/keycloak/data/import/realm-export.json

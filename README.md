@@ -29,10 +29,13 @@ infra/
 ├── .env.example
 ├── .gitignore
 ├── docker-compose.yml
+├── docker-compose.override.yml       # 로컬 개발용 (docker compose up -d 시 자동 병합)
+├── docker-compose.prod.yml           # AWS 배포용 (-f 옵션으로 명시)
 ├── postgres/
 │   └── init.sql
 ├── keycloak/
-│   └── realm-export.json
+│   ├── realm-export-local.json       # 로컬용 - user-client secret 고정값 포함
+│   └── realm-export-prod.json        # 배포용 - secret 없음, Keycloak이 UUID 자동 생성
 └── monitoring/
     ├── prometheus/
     │   └── prometheus.yml
@@ -116,19 +119,18 @@ PostgreSQL 컨테이너 최초 실행 시 `init.sql`이 자동으로 실행되�
 
 ### Realm 구성
 
-Keycloak 최초 실행 시 `realm-export.json`이 자동으로 import됩니다.
+Keycloak 최초 실행 시 환경에 맞는 realm 파일이 자동으로 import됩니다.
 
-| 항목 | 값                               |
-|------|---------------------------------|
-| Realm | `first-ticket`                  |
-| Access Token 유효기간 | 15분                             |
-| Clients | `gateway-client`, `user-client` |
-| Roles | `CUSTOMER`, `HOST`, `ADMIN`     |
+| 환경 | Compose 파일 | Import 파일 | user-client secret |
+|---|---|---|---|
+| 로컬 | `docker-compose.override.yml` | `realm-export-local.json` | `local-user-client-secret` (고정) |
+| 배포 | `docker-compose.prod.yml` | `realm-export-prod.json` | Keycloak이 UUID 자동 생성 |
 
-> ⚠️ **보안상 테스트 유저는 export에 포함되지 않습니다.** 아래 가이드에 따라 수동으로 생성하세요.
-> ⚠️ `user-client`는 **Direct Access Grants**가 활성화되어 있어야 user-service 로그인 API가 동작합니다.
-> 설정 위치: `Clients → user-client → Settings → Authentication flow → Direct access grants ON`
-
+> ⚠️ **보안상 테스트 유저는 export에 포함되지 않습니다.** 아래 가이드에 따라 수동으로 생성하세요. \
+> ⚠️ `user-client`는 **Direct Access Grants**가 활성화되어 있어야 user-service 로그인 API가 동작합니다. \
+> 설정 위치: `Clients → user-client → Settings → Authentication flow → Direct access grants ON` \
+> ⚠️ **배포 환경 최초 기동 후** user-client secret 등록 절차가 별도로 필요합니다. (하단 참고)
+> 
 ### 테스트 유저 생성
 
 #### 방법 A — user-service API 사용 (권장)
@@ -166,8 +168,8 @@ Content-Type: application/json
 6. **Details 탭 → Email verified: ON**
 
 > 💡 테스트 유저는 `keycloak-data` 볼륨에 저장됩니다. `docker compose down`해도 유지됩니다.
-> `realm-export.json`이 변경된 경우 볼륨을 초기화하세요: `docker compose down -v`
-
+> `realm-export-local.json`이 변경된 경우 볼륨을 초기화하세요: `docker compose down -v`
+> 
 ### 토큰 발급 테스트 (Postman)
 
 #### 방법 A — user-service 로그인 API 사용 (권장)
@@ -199,11 +201,44 @@ password={설정한 비밀번호}
 
 응답의 `expires_in: 900` (15분) 확인.
 
+## 🔐 Keycloak Admin Console 접속 방법 (배포 환경 — EC2)
+
+### 방법 A: SSH 터널링
+
+보안 그룹 포트 오픈 없이 접속 가능합니다.
+
+```bash
+# 로컬 PC에서 실행
+ssh -L 8180:localhost:8180 -i <KEY_FILE.pem> ec2-user@<EC2_PUBLIC_IP>
+```
+
+SSH 연결을 유지한 채로 브라우저에서 `http://localhost:8180` 접속합니다. (이때 포트번호 겹쳐있으면 안됨)
+
+## ⚙️ 배포 환경 최초 기동 후 필수 절차
+
+prod 환경은 realm import 시 `user-client` secret이 없으므로 **최초 배포 후 수동으로 등록**해야 합니다.
+
+1. Keycloak Admin Console 접속 (위 방법 참고)
+2. `first-ticket` Realm 선택
+3. 좌측 메뉴 → **Clients** → `user-client` 클릭
+4. **Credentials** 탭 → **Regenerate** 버튼 클릭 → 생성된 UUID 복사
+5. EC2의 `.env.prod`에 저장
+
+```
+KEYCLOAK_CLIENT_SECRET=<복사한-UUID>
+```
+
+6. user-service 재기동
+
+💡 **2회차 이후 배포**: PostgreSQL 영속 DB 사용으로 이미 import된 realm은 재기동 시 건너뜁니다. 
+secret을 다시 등록하지 않아도 됩니다.
+
+
 
 ---
 
-### 최종 수정 : 20260511
-### 최종 수정자 : 조하은
+### 최종 수정 : 20260515
+### 최종 수정자 : 박동진
 
 수정 이력
 - 20260422 : 최초 작성 (PostgreSQL / Redis / Kafka / Kafka UI)
@@ -211,3 +246,4 @@ password={설정한 비밀번호}
 - 20260428 : 테스트 유저 생성 방법 A(user-service API) 추가, 토큰 발급 방법 A(user-service 로그인 API) 추가
 - 20260507 : 모니터링 스택 추가 (Prometheus / Grafana / Zipkin), 폴더 구조 변경 (docker/ 제거)
 - 20260511 : nGrinder 부하테스트 인프라 추가 (Controller / Agent)
+- 20260515 : realm-export 환경별 분리 (local/prod), 배포 환경 Keycloak 접속 가이드 추가
