@@ -10,7 +10,7 @@ scrape_configs:
         refresh_interval: 30s
     metrics_path: /actuator/prometheus
     relabel_configs:
-      - source_labels: [__meta_eureka_app_instance_ip_addr, __meta_eureka_app_instance_port_unsecure]
+      - source_labels: [__meta_eureka_app_instance_ip_addr, __meta_eureka_app_instance_port]
         separator: ':'
         target_label: __address__
       - source_labels: [__meta_eureka_app_name]
