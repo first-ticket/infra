@@ -48,12 +48,12 @@ services:
       KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
       KC_HEALTH_ENABLED: "true"
 
-      # PostgreSQL 연동 — H2 인메모리 대신 영속성 확보
-      # 컨테이너 재시작 시에도 사용자/세션 데이터가 보존됩니다
+      # RDS 연동 — 로컬 postgresql 컨테이너 대신 AWS RDS 사용
+      # DB_* 변수는 .env.prod에서 주입 (git 미포함)
       KC_DB: postgres
-      KC_DB_URL: jdbc:postgresql://postgresql:5432/${POSTGRES_DB}
-      KC_DB_USERNAME: ${POSTGRES_USER}
-      KC_DB_PASSWORD: ${POSTGRES_PASSWORD}
+      KC_DB_URL: jdbc:postgresql://${DB_HOST}:${DB_PORT:-5432}/${DB_NAME}
+      KC_DB_USERNAME: ${DB_USERNAME}
+      KC_DB_PASSWORD: ${DB_PASSWORD}
 
       # AWS 환경에서 HTTP 허용
       # HTTPS 터미네이션을 ALB 또는 리버스 프록시에서 처리하는 구조에서는
