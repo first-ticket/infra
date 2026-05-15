@@ -78,3 +78,8 @@ services:
     # PostgreSQL DB 사용 -> 최초 배포 이후에는 해당 import 패스 (안전)
     volumes:
       - ./keycloak/realm-export-prod.json:/opt/keycloak/data/import/realm-export.json
+
+  prometheus:
+    volumes:
+      - ./monitoring/prometheus/prometheus-prod.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
