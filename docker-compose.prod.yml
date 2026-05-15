@@ -48,12 +48,12 @@ services:
       KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
       KC_HEALTH_ENABLED: "true"
 
-      # PostgreSQL 연동 — H2 인메모리 대신 영속성 확보
-      # 컨테이너 재시작 시에도 사용자/세션 데이터가 보존됩니다
+      # RDS 연동 — 로컬 postgresql 컨테이너 대신 AWS RDS 사용
+      # DB_* 변수는 .env.prod에서 주입 (git 미포함)
       KC_DB: postgres
-      KC_DB_URL: jdbc:postgresql://postgresql:5432/${POSTGRES_DB}
-      KC_DB_USERNAME: ${POSTGRES_USER}
-      KC_DB_PASSWORD: ${POSTGRES_PASSWORD}
+      KC_DB_URL: jdbc:postgresql://${DB_HOST}:${DB_PORT:-5432}/${DB_NAME}
+      KC_DB_USERNAME: ${DB_USERNAME}
+      KC_DB_PASSWORD: ${DB_PASSWORD}
 
       # AWS 환경에서 HTTP 허용
       # HTTPS 터미네이션을 ALB 또는 리버스 프록시에서 처리하는 구조에서는
@@ -61,15 +61,34 @@ services:
       KC_HTTP_ENABLED: "true"
       KC_HOSTNAME_STRICT: "false"
 
-    # PostgreSQL이 healthy 상태가 된 후 Keycloak을 기동합니다
-    # (DB 없이 start 모드로 기동하면 즉시 실패)
-    depends_on:
-      postgresql:
-        condition: service_healthy
-
     healthcheck:
       test: ["CMD", "bash", "-c", "exec 3<>/dev/tcp/localhost/9000 && printf 'GET /health/ready HTTP/1.0\\r\\nHost: localhost\\r\\n\\r\\n' >&3 && grep -q UP <&3"]
       interval: 15s
       timeout: 10s
       retries: 10
       start_period: 90s
+
+    # 운영환경 초기화용: secret 필드 없음 (Keycloak이 UUID 자동 생성)
+    # PostgreSQL DB 사용 -> 최초 배포 이후에는 해당 import 패스 (안전)
+    volumes:
+      - ./keycloak/realm-export-prod.json:/opt/keycloak/data/import/realm-export.json
+
+  prometheus:
+    volumes:
+      - ./monitoring/prometheus/prometheus-prod.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+
+  # ── 배포 환경에서 사용하지 않는 서비스 비활성화 ──────────────────
+  # ECS 환경의 Redis 사용
+  postgresql:
+    profiles:
+      - donotstart
+
+  # 부하테스트는 배포 환경에서 불필요
+  ngrinder-controller:
+    profiles:
+      - donotstart
+
+  ngrinder-agent:
+    profiles:
+      - donotstart

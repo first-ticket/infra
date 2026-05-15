@@ -1,0 +1,25 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  scrape_timeout: 10s
+
+scrape_configs:
+  - job_name: 'ecs-services'
+    metrics_path: '/actuator/prometheus'
+    aws_sd_configs:
+      - region: ap-northeast-2
+        type: Service
+        port: 8080
+        filters:
+          - name: namespace-name
+            values:
+              - first-ticket
+    relabel_configs:
+      # 서비스명을 job 라벨로 설정
+      - source_labels: [__meta_aws_sd_service_name]
+        target_label: job
+      # IP:PORT 설정
+      - source_labels: [__meta_aws_sd_instance_address]
+        regex: (.*)
+        target_label: __address__
+        replacement: '${1}:8080'

@@ -22,6 +22,10 @@
 services:
   keycloak:
     command: start-dev --import-realm
+    # 로컬 개발용 : 고정 secret(local-user-client-secret) 포함
+    # H2 인메모리 DB 사용 -> 컨테이너 재시작 시마다  realm 초기화되므로 고정값 필요
+    volumes:
+      - ./keycloak/realm-export-local.json:/opt/keycloak/data/import/realm-export.json
     healthcheck:
       test: ["CMD", "bash", "-c", "exec 3<>/dev/tcp/localhost/9000 && printf 'GET /health/ready HTTP/1.0\\r\\nHost: localhost\\r\\n\\r\\n' >&3 && grep -q UP <&3"]
       interval: 15s

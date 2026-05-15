@@ -95,7 +95,6 @@ services:
       KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
       KC_HEALTH_ENABLED: "true"
     volumes:
-      - ./keycloak/realm-export.json:/opt/keycloak/data/import/realm-export.json
       - keycloak-data:/opt/keycloak/data
     ports:
       - "${KEYCLOAK_PORT:-8180}:8080"
