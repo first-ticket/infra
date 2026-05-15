@@ -83,3 +83,18 @@ services:
     volumes:
       - ./monitoring/prometheus/prometheus-prod.yml:/etc/prometheus/prometheus.yml:ro
       - prometheus-data:/prometheus
+
+  # ── 배포 환경에서 사용하지 않는 서비스 비활성화 ──────────────────
+  # ECS 환경의 Redis 사용
+  postgresql:
+    profiles:
+      - donotstart
+
+  # 부하테스트는 배포 환경에서 불필요
+  ngrinder-controller:
+    profiles:
+      - donotstart
+
+  ngrinder-agent:
+    profiles:
+      - donotstart
