@@ -104,7 +104,7 @@ services:
   # ── 모니터링 ──────────────────────────────────────────────
 
   prometheus:
-    image: prom/prometheus:v2.51.0
+    image: prom/prometheus:v2.53.0
     container_name: first-ticket-prometheus
     restart: on-failure:3
     ports:

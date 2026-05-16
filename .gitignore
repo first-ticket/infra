@@ -1,2 +1,7 @@
 .env
 .env.prod
+
+monitoring/prometheus/targets.json
+monitoring/prometheus/targets.json.tmp
+monitoring/prometheus/update.log
+

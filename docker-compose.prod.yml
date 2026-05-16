@@ -77,6 +77,7 @@ services:
   prometheus:
     volumes:
       - ./monitoring/prometheus/prometheus-prod.yml:/etc/prometheus/prometheus.yml:ro
+      - ./monitoring/prometheus:/etc/prometheus/config:ro
       - prometheus-data:/prometheus
 
   # ── 배포 환경에서 사용하지 않는 서비스 비활성화 ──────────────────
