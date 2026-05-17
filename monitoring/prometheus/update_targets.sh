@@ -37,9 +37,16 @@ for SERVICE in "${SERVICES[@]}"; do
     if [ "$FIRST" = false ]; then
       echo "  ," >> $TEMP_FILE
     fi
-    
+
+    # eureka-server는 8761 포트 사용
+    if [ "$SERVICE" = "eureka-server" ]; then
+      PORT=8761
+    else
+      PORT=8080
+    fi
+
     echo "  {" >> $TEMP_FILE
-    echo "    \"targets\": [\"$IP:8080\"]," >> $TEMP_FILE
+    echo "    \"targets\": [\"$IP:$PORT\"]," >> $TEMP_FILE
     echo "    \"labels\": { \"job\": \"$SERVICE\" }" >> $TEMP_FILE
     echo "  }" >> $TEMP_FILE
     FIRST=false
