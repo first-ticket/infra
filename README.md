@@ -105,13 +105,14 @@ docker compose down
 
 PostgreSQL 컨테이너 최초 실행 시 `init.sql`이 자동으로 실행되어 아래 스키마가 생성됩니다.
 
-| 스키마 | 서비스 |
-|--------|--------|
-| `user_schema` | user-service |
+| 스키마              | 서비스             |
+|------------------|-----------------|
+| `user_schema`    | user-service    |
 | `program_schema` | program-service |
 | `booking_schema` | booking-service |
 | `payment_schema` | payment-service |
-| `queue_schema` | queue-service |
+| `queue_schema`   | queue-service   |
+| `venue_schema`   | venue-service   |
 
 ---
 
